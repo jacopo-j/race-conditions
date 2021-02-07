@@ -2,9 +2,9 @@
 
 As the name implies, this condition arises when a certain value is checked (e.g. to verify that it satisfies a condition) and then it is used to perform some operation. If the \textit{check} and the \textit{use} instructions are distinct and do not constitute a single atomic operation, a race condition could allow modification of the value after it is checked and before it is used.
 
-\subsection{TOC/TOU example}
+\subsection{TOC/TOU example \citep{courseslides}}
 
-This example has been adapted from \citep{courseslides}. Consider the following PHP code snippet handling a money transfer between two customers of the same bank. \textsc{a} has 500\$ in her account and she wants to transfer 400\$ to \textsc{b}'s account, which is currently empty.
+Consider the following PHP code snippet handling a money transfer between two customers of the same bank. \textsc{a} has 500\$ in her account and she wants to transfer 400\$ to \textsc{b}'s account, which is currently empty.
 
 \begin{minted}[linenos, bgcolor=black, escapeinside=!!, startinline]{php}
 // Check if A's balance is sufficient
