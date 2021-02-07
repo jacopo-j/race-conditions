@@ -13,7 +13,7 @@ Common examples of shared data are:
 
 To understand the problems that race conditions may bring about, consider this very simple example. The Python code below reads an integer from a file on the disk, it increments the value by 1, then writes back the result to the file.
 
-\begin{minted}[linenos, bgcolor=black, escapeinside=!!]{python}
+\begin{minted}[linenos, bgcolor=black, escapeinside=!!, samepage]{python}
 # Open and read file
 with open("myfile", "r") as f:
     value = int(f.read())
