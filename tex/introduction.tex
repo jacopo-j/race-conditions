@@ -1,0 +1,104 @@
+\section{Introduction}
+
+A race condition occurs when multiple concurrent threads try to access and change some shared data. The resulting change will depend on the order of execution of those threads, and since the operating system can switch between threads at any time, the final result will be undefined.\\
+
+Common examples of shared data are:
+\begin{itemize}
+  \item \textbf{Regular files} on the filesystem: by default nothing prevents one thread from reading and writing files that are also being used by another thread. Developers may avoid this by using a file locking mechanism
+  \item \textbf{Shared memory}: requires using mutexes or semaphores to ensure that critical operations are executed atomically
+  \item \textbf{Databases}. Database Management Systems (DBMS) usually provide built-in support for concurrent connections with the use of transactions.
+\end{itemize}
+
+\subsection{First example}
+
+To understand the problems that race conditions may bring about, consider this very simple example. The Python code below reads an integer from a file on the disk, it increments the value by 1, then writes back the result to the file.
+
+\begin{minted}[linenos, bgcolor=black, escapeinside=!!]{python}
+# Open and read file
+with open("myfile", "r") as f:
+    value = int(f.read())
+
+# Increment value
+value += 1
+
+# Write back new value
+with open("myfile", "w") as f:
+    f.write(str(value))
+\end{minted}
+
+Now assume that the same code is being run by two concurrent threads. Without considering the effect of the race condition, someone may think that the final value stored in the file is always the original value incremented by 2. The reality is more complex, as one of several scenarios will occur -- which one is undefined.
+
+\subsubsection*{Scenario 1 (sequential execution)}
+
+This is the simplest (and luckiest) case, which is not affected by the race condition at all. As an example, let the initial content of the file be \texttt{19}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\thead[c]{\textbf{Thread \#1}} & \thead[c]{\textbf{Thread \#2}} \\ \hline
+\makecell[tl]{Open and read file (\texttt{value = 19})} & \\
+\makecell[tl]{Increment value (\texttt{value = 20})} &  \\
+\makecell[tl]{Write back new value (\texttt{value = 20})} &  \\
+& \makecell[tl]{Open and read file (\texttt{value = 20})} \\
+& \makecell[tl]{Increment value (\texttt{value = 21})}  \\
+& \makecell[tl]{Write back new value (\texttt{value = 21})}  \\  \hline
+\end{tabular}
+\caption{Execution order in Scenario 1}
+\label{tab:scenario1}
+\end{table}
+
+\noindent
+Here, the final value stored in the file is \textit{actually} the original value incremented by 2, that is \texttt{21} in our example.
+
+\subsubsection*{Scenario 2 (interleaved execution)}
+
+If the second thread starts executing before the first one has finished writing its result, it will read the ``old'' value from the file.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\thead[c]{\textbf{Thread \#1}} & \thead[c]{\textbf{Thread \#2}} \\ \hline
+\makecell[tl]{Open and read file (\texttt{value = 19})} & \\
+\makecell[tl]{Increment value (\texttt{value = 20})} & \\
+& \makecell[tl]{Open and read file (\texttt{\textcolor{red}{value = 19}})} \\
+\makecell[tl]{Write back new value (\texttt{value = 20})} & \\
+& \makecell[tl]{Increment value (\texttt{value = 20})} \\
+& \makecell[tl]{Write back new value (\texttt{value = 20})}  \\  \hline
+\end{tabular}
+\caption{Execution order in Scenario 2}
+\label{tab:scenario2}
+\end{table}
+
+\noindent
+At the end of the execution, we have lost the update from the first thread and the value is incremented only by 1.
+
+\subsubsection*{Scenario 3 (interleaved execution)}
+
+Of course we can have many more complex situations, such as Thread \#1 ``wrapping'' the execution of Thread \#2, although in this example that would lead to the same value being stored in the file as before.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\thead[c]{\textbf{Thread \#1}} & \thead[c]{\textbf{Thread \#2}} \\ \hline
+\makecell[tl]{Open and read file (\texttt{value = 19})} & \\
+& \makecell[tl]{Open and read file (\texttt{value = 19})} \\
+\makecell[tl]{Increment value (\texttt{value = 20})} & \\
+& \makecell[tl]{Increment value (\texttt{value = 20})} \\
+& \makecell[tl]{Write back new value (\texttt{value = 20})}  \\
+\makecell[tl]{Write back new value (\texttt{\textcolor{red}{value = 20}})}  & \\ \hline
+\end{tabular}
+\caption{Execution order in Scenario 3}
+\label{tab:scenario3}
+\end{table}
+
+\noindent
+In this case we have lost the update from the second thread and, once again, the value is incremented only by 1.
+
+\begin{center}
+  $\ast$~$\ast$~$\ast$
+\end{center}
+
+While being simple, this example illustrates some of the bugs that can arise when concurrency is not handled correctly. The fact that the behaviour may change at each execution makes this kind of bug even harder to discover, expecially in more complex situations. \textit{In the wild} race conditions can cause severe vulnerabilities: think about lost or repeated transactions in the context of a banking system. Particularly relevant in this case is a specific type of race condition:

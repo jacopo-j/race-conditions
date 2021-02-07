@@ -1,0 +1,34 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\author{Jacopo Jannone\footnote{\url{https://jacopo.io}}}
+\title{Race Conditions}
+
+% TODO remove unused packages
+
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{minted}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{makecell}
+\usepackage{xcolor}
+
+\usemintedstyle{monokai}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\input{tex/introduction}
+\input{tex/toctou}
+
+\bibliographystyle{plain}
+\bibliography{bib/references}
+\end{document}
+
+% references:
+% http://www.cis.syr.edu/~wedu/Teaching/IntrCompSec/LectureNotes_New/Race_Condition.pdf
