@@ -5,7 +5,7 @@ A race condition occurs when multiple concurrent threads try to access and chang
 Common examples of shared data are:
 \begin{itemize}
   \item \textbf{Regular files} on the filesystem: by default nothing prevents one thread from reading and writing files that are also being used by another thread. Developers may avoid this by using a file locking mechanism
-  \item \textbf{Shared memory}: requires using mutexes or semaphores to ensure that critical operations are executed atomically
+  \item \textbf{Shared memory}: requires using mutexes or semaphores to ensure that critical operations are executed atomically\footnote{An operation is atomic if it is performed as a single, indivisible step without the possibility of interference from other operations.}
   \item \textbf{Databases}. Database Management Systems (DBMS) usually provide built-in support for concurrent connections with the use of transactions.
 \end{itemize}
 
