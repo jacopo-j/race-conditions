@@ -1,0 +1,39 @@
+\section{Time-of-check to time-of-use}
+
+Consider the following PHP code snippet handling a money transfer between two customers of the same bank. \textsc{a} has 500\$ in her account and she wants to transfer 400\$ to \textsc{b}'s account.
+
+\begin{minted}[linenos, bgcolor=black, escapeinside=!!, startinline]{php}
+// Check if A's balance is sufficient
+$balanceA = query("SELECT balance FROM users WHERE id = A");
+if ($balanceA < 400) {
+    die("Insufficient balance");
+}
+
+// Calculate A's new balance
+$balanceA -= 400;
+
+// Store money transfer
+query("UPDATE users SET balance = $balanceA WHERE id = A");
+query("UPDATE users SET balance = balance + 400 WHERE id = B");
+\end{minted}
+
+Assume that \textsc{a} mistakenly (or purposely) requests the operation two times in a row (e.g. by clicking the ``Confirm'' button twice) on her home banking application, resulting in two (asynchronous) requests being sent to the server. In the worst case, the following could happen:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\thead[c]{\textbf{First request}} & \thead[c]{\textbf{Second request}} \\ \hline
+\makecell[tl]{Check \textsc{a}'s balance \\ \hspace{12px} (\texttt{A=500, B=0, \$balanceA=500})} & \\
+\rule{0pt}{4ex} & \makecell[tl]{Check \textsc{a}'s balance \\ \hspace{12px} (\texttt{A=500, B=0, \$balanceA=500})}  \\
+\makecell[tl]{Calculate \textsc{a}'s new balance \\ \hspace{12px} (\texttt{A=500,  B=0, \$balanceA=100})} \rule{0pt}{4ex}  & \\
+\rule{0pt}{4ex} & \makecell[tl]{Calculate \textsc{a}'s new balance \\ \hspace{12px} (\texttt{A=500, B=0, \$balanceA=100})} \\
+\makecell[tl]{Store money transfer \\ \hspace{12px} (\texttt{A=100, B=400, \$balanceA=100})} \rule{0pt}{4ex} & \\
+\rule{0pt}{4ex} & \makecell[tl]{Store money transfer \\ \hspace{12px} (\texttt{\textcolor{red}{A=100, B=800}, \$balanceA=100})} \\ \hline
+\end{tabular}
+\caption{Parallel execution of two concurrent money transfer requests. \texttt{A} and \texttt{B} represent the stored values of \textsc{a}'s and \textsc{b}'s balances}
+\label{tab:toctou}
+\end{table}
+
+\noindent
+At the end of the process, \textsc{b} would end up with twice the money he was intended to receive.
