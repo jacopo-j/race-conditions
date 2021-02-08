@@ -6,7 +6,8 @@ The challenge presents itself as a simple web application that allows users to r
  
 Registering a new user and logging in results in an error message: ``\texttt{This is a restricted account}''. The error can be investigated by searching the message in the application sources, which unsurprisingly leads to the \texttt{login.php} file. The relevant part of the code is reported here.
 
-\begin{minted}[escapeinside=!!, startinline, samepage, firstnumber=22, breaklines]{php}
+\begin{listing}[H]
+\begin{minted}[escapeinside=!!, startinline, samepage, firstnumber=27, breaklines]{php}
 $uid = $row['id'];
 $sql = "SELECT isRestricted from privs where userid='$uid' and isRestricted=TRUE;";
 $result = mysqli_query($conn, $sql); !\label{permcheck}!
@@ -17,7 +18,7 @@ $row = $result->fetch_assoc();
 \newenvironment{uglyworkaround}{\par\color{white}}{\par}
 \begin{uglyworkaround}
 \renewcommand{\theFancyVerbLine}{\rmfamily\textcolor{black}{\tiny{\arabic{FancyVerbLine}}}}
-\begin{minted}[samepage, firstline=2, lastline=12, firstnumber=26, breaklines]{html+php}
+\begin{minted}[samepage, firstline=2, lastline=12, firstnumber=31, breaklines]{html+php}
 <?php
 if($row['isRestricted']){
     ?>
@@ -33,11 +34,14 @@ if($row['isRestricted']){
 ?>
 \end{minted}
 \end{uglyworkaround}
+\caption{Extract from file \texttt{login.php}}
+\end{listing}
 
 The code checks with the database whether the current user has a \texttt{isRestricted} flag set. If he does, the error message is shown. Otherwise, a file called \texttt{key} is included in the page. It is reasonable to guess that the \texttt{key} file -- which is not included in the provided sources -- contains the flag. \\
 
 By searching again through the application sources, it is possible to find where the \texttt{isRestricted} flag is set in the database. The following code snippet belongs to the \texttt{register.php} file.
 
+\begin{listing}[H]
 \begin{minted}[escapeinside=!!, samepage, startinline, firstnumber=13, breaklines]{php}
 $username = mysqli_real_escape_string($conn, $_POST['username']);
 $password = mysqli_real_escape_string($conn, $_POST['password']);
@@ -48,6 +52,8 @@ mysqli_query($conn, $sql); !\label{exec1}!
 $sql = "INSERT into privs (userid, isRestricted) values ((select users.id from users where username='$username'), TRUE);"; !\label{query2}!
 mysqli_query($conn, $sql); !\label{exec2}!
 \end{minted}
+\caption{Extract from file \texttt{register.php}}
+\end{listing}
 
 Here two queries are created and executed. The first one, at line \ref{query1}, performs the user registration by addding the corresponding row into the database. The second one, at line \ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} flag for the newly registered user. \\
 
