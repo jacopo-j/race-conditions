@@ -12,7 +12,13 @@
 \usepackage{xcolor}
 \usepackage[justification=centering]{caption}
 
-\definecolor{codebg}{HTML}{f6f7f9}
+\usemintedstyle{monokai}
+\setminted{
+	linenos,
+	bgcolor=black,
+	breaksymbolleft={\textcolor{white}{\tiny\ensuremath{\hookrightarrow}}}
+}
+
 \date{}
 
 \begin{document}

@@ -6,16 +6,11 @@ The challenge presents itself as a simple web application that allows users to r
  
 Registering a new user and logging in results in an error message: ``\texttt{This is a restricted account}''. The error can be investigated by searching the message in the application sources, which unsurprisingly leads to the \texttt{login.php} file. The relevant part of the code is reported here.
 
-% Some bug here prevents syntax highlighting from working correctly:
-% some keywords in the code are not colored.
-% Adding the startinline option apparently solves the problem
-% but it is not a viable solution as then the parser ignores
-% PHP closing tags and it interprets HTML as PHP code.
-% The problem also goes away removing the escapeinside option,
-% but that is not a viable solution either since I need some labels.
-% Using alternate symbols in the escapeinside option doesn't seem to
-% make a difference.
-\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, firstline=2, lastline=16, firstnumber=22, breaklines]{html+php}
+% See https://github.com/gpoore/minted/issues/291
+\newenvironment{uglyworkaround}{\par\color{white}}{\par}
+\begin{uglyworkaround}
+\renewcommand{\theFancyVerbLine}{\rmfamily\textcolor{black}{\tiny{\arabic{FancyVerbLine}}}}
+\begin{minted}[escapeinside=!!, samepage, firstline=2, lastline=16, firstnumber=22, breaklines]{html+php}
 <?php
 $uid = $row['id'];
 $sql = "SELECT isRestricted from privs where userid='$uid' and isRestricted=TRUE;";
@@ -34,12 +29,13 @@ if($row['isRestricted']){
 }
 ?>
 \end{minted}
+\end{uglyworkaround}
 
 The code checks with the database whether the current user has a \texttt{isRestricted} flag set. If he does, the above error message is shown (line \ref{errormsg}). Otherwise, a file called \texttt{key} is included in the page (line \ref{flag}). It is reasonable to guess that the \texttt{key} file -- which is not included in the provided sources -- contains the flag. \\
 
 By searching again through the application sources, it is possible to find where the \texttt{isRestricted} flag is set in the database. The following code snippet belongs to the \texttt{register.php} file.
 
-\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, startinline, firstnumber=13, breaklines]{php}
+\begin{minted}[escapeinside=!!, samepage, startinline, firstnumber=13, breaklines]{php}
 $username = mysqli_real_escape_string($conn, $_POST['username']);
 $password = mysqli_real_escape_string($conn, $_POST['password']);
 
@@ -75,7 +71,7 @@ The easiest way of exploiting this vulnerability is repeatedly making two almost
 \noindent
 For this purpose, we can use the \texttt{threading} Python module.
 
-\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, python3]{python}
+\begin{minted}[samepage, python3]{python}
 import requests
 import threading
 import re

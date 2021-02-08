@@ -6,7 +6,7 @@ As the name implies, this condition arises when a certain value is checked (e.g.
 
 Consider the following PHP code snippet handling a money transfer between two customers of the same bank. \textsc{a} has 500\$ in her account and she wants to transfer 400\$ to \textsc{b}'s account, which is currently empty.
 
-\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, startinline, samepage]{php}
+\begin{minted}[startinline, samepage]{php}
 // Check if A's balance is sufficient
 $balanceA = query("SELECT balance FROM users WHERE id = A");
 if ($balanceA < 400) {
@@ -46,10 +46,9 @@ At the end of the process, \textsc{b} would end up with twice the money he was i
 
 An easy way of resolving the problem is leveraging the atomicity of database queries:
 
-\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, startinline, samepage]{php}
+\begin{minted}[startinline, breaklines, samepage]{php}
 // Update A's balance only if she has at least 400$
-query("UPDATE users SET balance = balance - 400 \
-       WHERE id = A AND balance >= 400");
+query("UPDATE users SET balance = balance - 400 WHERE id = A AND balance >= 400");
 
 // Check if the balance was actually updated
 if (affected_rows == 0) {
