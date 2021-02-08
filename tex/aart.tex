@@ -6,6 +6,15 @@ The challenge presents itself as a simple web application that allows users to r
  
 Registering a new user and logging in results in an error message: ``\texttt{This is a restricted account}''. The error can be investigated by searching the message in the application sources, which unsurprisingly leads to the \texttt{login.php} file. The relevant part of the code is reported here.
 
+% Some bug here prevents syntax highlighting from working correctly:
+% some keywords in the code are not colored.
+% Adding the startinline option apparently solves the problem
+% but it is not a viable solution as then the parser ignores
+% PHP closing tags and it interprets HTML as PHP code.
+% The problem also goes away removing the escapeinside option,
+% but that is not a viable solution either since I need some labels.
+% Using alternate symbols in the escapeinside option doesn't seem to
+% make a difference.
 \begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, firstline=2, lastline=16, firstnumber=22, breaklines]{html+php}
 <?php
 $uid = $row['id'];
