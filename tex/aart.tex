@@ -6,24 +6,27 @@ The challenge presents itself as a simple web application that allows users to r
  
 Registering a new user and logging in results in an error message: ``\texttt{This is a restricted account}''. The error can be investigated by searching the message in the application sources, which unsurprisingly leads to the \texttt{login.php} file. The relevant part of the code is reported here.
 
-% See https://github.com/gpoore/minted/issues/291
-\newenvironment{uglyworkaround}{\par\color{white}}{\par}
-\begin{uglyworkaround}
-\renewcommand{\theFancyVerbLine}{\rmfamily\textcolor{black}{\tiny{\arabic{FancyVerbLine}}}}
-\begin{minted}[escapeinside=!!, samepage, firstline=2, lastline=16, firstnumber=22, breaklines]{html+php}
-<?php
+\begin{minted}[escapeinside=!!, startinline, samepage, firstnumber=22, breaklines]{php}
 $uid = $row['id'];
 $sql = "SELECT isRestricted from privs where userid='$uid' and isRestricted=TRUE;";
 $result = mysqli_query($conn, $sql); !\label{permcheck}!
 $row = $result->fetch_assoc();
+\end{minted}
+
+\vspace{-20pt}
+\newenvironment{uglyworkaround}{\par\color{white}}{\par}
+\begin{uglyworkaround}
+\renewcommand{\theFancyVerbLine}{\rmfamily\textcolor{black}{\tiny{\arabic{FancyVerbLine}}}}
+\begin{minted}[samepage, firstline=2, lastline=12, firstnumber=26, breaklines]{html+php}
+<?php
 if($row['isRestricted']){
     ?>
-    <h2>This is a restricted account</h2> !\label{errormsg}!
+    <h2>This is a restricted account</h2>
 
     <?php
 }else{
     ?>
-    <h2><?php include('../key');?></h2> !\label{flag}!
+    <h2><?php include('../key');?></h2>
     <?php
 
 }
@@ -31,7 +34,7 @@ if($row['isRestricted']){
 \end{minted}
 \end{uglyworkaround}
 
-The code checks with the database whether the current user has a \texttt{isRestricted} flag set. If he does, the above error message is shown (line \ref{errormsg}). Otherwise, a file called \texttt{key} is included in the page (line \ref{flag}). It is reasonable to guess that the \texttt{key} file -- which is not included in the provided sources -- contains the flag. \\
+The code checks with the database whether the current user has a \texttt{isRestricted} flag set. If he does, the error message is shown. Otherwise, a file called \texttt{key} is included in the page. It is reasonable to guess that the \texttt{key} file -- which is not included in the provided sources -- contains the flag. \\
 
 By searching again through the application sources, it is possible to find where the \texttt{isRestricted} flag is set in the database. The following code snippet belongs to the \texttt{register.php} file.
 
