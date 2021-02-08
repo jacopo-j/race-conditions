@@ -6,7 +6,8 @@ The challenge presents itself as a simple web application that allows users to r
  
 Registering a new user and logging in results in an error message: ``\texttt{This is a restricted account}''. The error can be investigated by searching the message in the application sources, which unsurprisingly leads to the \texttt{login.php} file. The relevant part of the code is reported here.
 
-\begin{minted}[linenos, bgcolor=black, escapeinside=!!, samepage, startinline, firstnumber=22, breaklines]{php}
+\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, firstline=2, lastline=16, firstnumber=22, breaklines]{html+php}
+<?php
 $uid = $row['id'];
 $sql = "SELECT isRestricted from privs where userid='$uid' and isRestricted=TRUE;";
 $result = mysqli_query($conn, $sql); !\label{permcheck}!
@@ -22,13 +23,14 @@ if($row['isRestricted']){
     <?php
 
 }
+?>
 \end{minted}
 
 The code checks with the database whether the current user has a \texttt{isRestricted} flag set. If he does, the above error message is shown (line \ref{errormsg}). Otherwise, a file called \texttt{key} is included in the page (line \ref{flag}). It is reasonable to guess that the \texttt{key} file -- which is not included in the provided sources -- contains the flag. \\
 
 By searching again through the application sources, it is possible to find where the \texttt{isRestricted} flag is set in the database. The following code snippet belongs to the \texttt{register.php} file.
 
-\begin{minted}[linenos, bgcolor=black, escapeinside=!!, samepage, startinline, firstnumber=13, breaklines]{php}
+\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, startinline, firstnumber=13, breaklines]{php}
 $username = mysqli_real_escape_string($conn, $_POST['username']);
 $password = mysqli_real_escape_string($conn, $_POST['password']);
 
@@ -39,7 +41,7 @@ $sql = "INSERT into privs (userid, isRestricted) values ((select users.id from u
 mysqli_query($conn, $sql); !\label{exec2}!
 \end{minted}
 
-Here two queries are created and executed. The first one, at line \ref{query1}, performs the user registration by adding the corresponding row into the database. The second one, at line \ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} flag for the newly registered user. \\
+Here two queries are created and executed. The first one, at line \ref{query1}, performs the user registration by addding the corresponding row into the database. The second one, at line \ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} flag for the newly registered user. \\
 
 Notice that the two queries are executed separately instead of being part of a single SQL transaction. This leads to a race condition: with accurate timing, an attacker could login to the application after the first query is executed but before the second query is. Indeed, during the short period of time that occurs between lines \ref{exec1} and \ref{exec2}, the user is registered but it is not restricted yet. \\
 
@@ -64,7 +66,7 @@ The easiest way of exploiting this vulnerability is repeatedly making two almost
 \noindent
 For this purpose, we can use the \texttt{threading} Python module.
 
-\begin{minted}[linenos, bgcolor=black, escapeinside=!!, samepage]{python}
+\begin{minted}[linenos, bgcolor=codebg, escapeinside=!!, samepage, python3]{python}
 import requests
 import threading
 import re
