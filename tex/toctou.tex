@@ -40,7 +40,7 @@ Assume that \textsc{a} mistakenly (or purposely) requests the operation two time
 \end{table}
 
 \noindent
-At the end of the process, \textsc{b} would end up with twice the money he was intended to receive, while the correct amount of money was taken from \textsc{a}. Notice that the problem resides in the fact that the check of \textsc{a}'s initial balance and its subsequent update are two distinct (non-atomic) operations.
+At the end of the process, \textsc{b} would end up with twice the money he was intended to receive, while the money would only be taken once from \textsc{a}'s account. Notice that the problem resides in the fact that the check of \textsc{a}'s initial balance and its subsequent update are two distinct (non-atomic) operations.
 
 \subsection{Purposed solution}
 
