@@ -6,14 +6,15 @@ Common examples of shared data are:
 \begin{itemize}
   \item \textbf{Regular files} on the filesystem: by default nothing prevents one thread from reading and writing files that are also being used by another thread. Developers may avoid this by using a file locking mechanism
   \item \textbf{Shared memory}: requires using mutexes or semaphores to ensure that critical operations are executed atomically\footnote{An operation is atomic if it is performed as a single, indivisible step without the possibility of interference from other operations.}
-  \item \textbf{Databases}. Database Management Systems (DBMS) usually provide built-in support for concurrent connections with the use of transactions\footnote{Notice that this does not mean that operations involving databases are automatically immune to race conditions. On the contrary, misuse of database transactions is often the cause of race condition vulnerabilities in web applications.}.
+  \item \textbf{Databases}. Database Management Systems (DBMS) usually provide built-in support for concurrent connections with the use of transactions\footnote{Notice that this does not mean that operations involving databases are automatically immune to race conditions. On the contrary, as we will see misuse of database transactions is often the cause of race condition vulnerabilities in web applications.}.
 \end{itemize}
 
 \subsection{First example}
 
-To understand the problems that race conditions may bring about, consider this very simple example. The Python code below reads an integer from a file on the disk, it increments the value by 1, then writes back the result to the file.
+We will now see one simple kind of bugs that race conditions may cause with a practical example. The Python code in Listing~\ref{listing:ex} reads an integer from a file on the disk, it increments the value by 1, then writes back the result to the file.
 
-\begin{minted}[samepage, python3]{python}
+\begin{listing}[H]
+\begin{minted}[python3]{python}
 # Open and read file
 with open("myfile", "r") as f:
     value = int(f.read())
@@ -25,12 +26,17 @@ value += 1
 with open("myfile", "w") as f:
     f.write(str(value))
 \end{minted}
+\caption{Example of program affected by a race condition}
+\label{listing:ex}
+\end{listing}
 
-Now assume that the same code is being run by two concurrent threads. Without considering the effect of the race condition, someone may think that the final value stored in the file is always the original value incremented by 2. The reality is more complex, as one of several scenarios will occur -- which one depends on the operating system and cannot be known a priori.
+At a first glance, it seems reasonable to assume that each execution of the program will always result in the value stored in the file being incremented by 1. Therefore, running the program \textit{n} times will result in the value stored in the file being incremented by \textit{n}. If we consider the possibility of running the program in multiple concurrent threads, however, this assumption is no longer guaranteed. In fact, the operating system may switch between threads at any point during the execution, leading to different outcomes. \\
+
+For the sake of this example, suppose that we are running the program in two concurrent threads and let the initial value stored in the file be \texttt{19}. We will explore three of possible outcomes, result of just as many ways the scheduler can switch between threads.
 
 \subsubsection*{Scenario 1 (sequential execution)}
 
-This is the simplest (and luckiest) case, which is not affected by the race condition at all. As an example, let the initial content of the file be \texttt{19}.
+This is the simplest (and luckiest) case. The scheduler does not switch between threads in the middle of the execution. Table~\ref{tab:scenario1} illustrates the order of execution of the relevant operations of each thread in a chronological order from top to bottom.
 
 \begin{table}[H]
 \centering
@@ -48,8 +54,7 @@ This is the simplest (and luckiest) case, which is not affected by the race cond
 \label{tab:scenario1}
 \end{table}
 
-\noindent
-Here, the final value stored in the file is \textit{actually} the original value incremented by 2, that is \texttt{21} in our example.
+This case is equivalent to running the program sequentially two times with no concurrency. No race conditions arise, and the final value stored in the file is \texttt{21}, that is the original value incremented by 2.
 
 \subsubsection*{Scenario 2 (interleaved execution)}
 
@@ -71,12 +76,11 @@ If the second thread starts executing before the first one has finished writing 
 \label{tab:scenario2}
 \end{table}
 
-\noindent
-At the end of the execution, we have lost the update from the first thread and the value is incremented only by 1.
+At the end of the execution, we have lost the update from the first thread. The final value stored in the file is \texttt{20}, that is the original value incremented only by 1.
 
 \subsubsection*{Scenario 3 (interleaved execution)}
 
-Of course we can have many more complex situations, such as Thread \#1 ``wrapping'' the execution of Thread \#2, although in this example that would lead to the same value being stored in the file as before.
+Table~\ref{tab:scenario3} illustrates the situation where Thread~\#1 ``wraps'' the execution of Thread~\#2: Thread~\#1 is the first to start and the last to finish.
 
 \begin{table}[H]
 \centering
@@ -94,11 +98,12 @@ Of course we can have many more complex situations, such as Thread \#1 ``wrappin
 \label{tab:scenario3}
 \end{table}
 
-\noindent
-In this case we have lost the update from the second thread and, once again, the value is incremented only by 1.
+This case results in losing the update from the second thread. As in Scenario~2, the final value stored in the file is \texttt{20} instead of \texttt{21}.
 
 \begin{center}
   $\ast$~$\ast$~$\ast$
 \end{center}
 
-While being simple, this example illustrates some of the bugs that can arise when concurrency is not handled correctly. The fact that the behaviour may change at each execution makes this kind of bug even harder to discover, expecially in more complex situations. \textit{In the wild} race conditions can cause severe vulnerabilities: think about lost or repeated transactions in the context of a banking system. A specific type of race condition that is frequently found both in binary and in web application is the following.
+This example shows how a race condition can affect even the simplest program by making its result dependent on the order of execution of concurrent threads (and therefore practically impossible to predict). The fact that the bug does not always present itself (as in Senario~1) makes it even harder to detect, expecially in more complex situations. \\
+
+In real-world applications race conditions can cause severe vulnerabilities: think about lost or repeated transactions in the context of a banking system. A specific type of race condition that is frequently found both in binary and in web application is described the following section.
