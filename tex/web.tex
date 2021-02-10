@@ -57,7 +57,7 @@ mysqli_query($conn, $sql); !\label{exec2}!
 \caption{Extract from file \texttt{register.php}}
 \end{listing}
 
-Here two queries are created and executed. The first one, at line \ref{query1}, performs the user registration by addding the corresponding row into the database. The second one, at line \ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} flag for the newly registered user. \\
+Here two queries are created and executed. The first one, at line \ref{query1}, performs the user registration by adding the corresponding row into the database. The second one, at line \ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} flag for the newly registered user. \\
 
 Notice that the two queries are executed separately instead of being part of a single SQL transaction. This leads to a race condition: with accurate timing, an attacker could login to the application after the first query is executed but before the second query is. Indeed, during the short period of time that occurs between lines \ref{exec1} and \ref{exec2}, the user is registered but it is not restricted yet. \\
 

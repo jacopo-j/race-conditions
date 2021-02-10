@@ -4,7 +4,7 @@ A race condition occurs when multiple concurrent threads try to access and chang
 
 Common examples of shared data are:
 \begin{itemize}
-  \item \textbf{Regular files} on the filesystem: by default nothing prevents one thread from reading and writing files that are also being used by another thread. Developers may avoid this by using a file locking mechanism
+  \item \textbf{Regular files} on the file system: by default nothing prevents one thread from reading and writing files that are also being used by another thread. Developers may avoid this by using a file locking mechanism
   \item \textbf{Shared memory}: requires using mutexes or semaphores to ensure that critical operations are executed atomically\footnote{An operation is atomic if it is performed as a single, indivisible step without the possibility of interference from other operations.}
   \item \textbf{Databases}. Database Management Systems (DBMS) usually provide built-in support for concurrent connections with the use of transactions\footnote{Notice that this does not mean that operations involving databases are automatically immune to race conditions. On the contrary, as we will see misuse of database transactions is often the cause of race condition vulnerabilities in web applications.}.
 \end{itemize}
@@ -104,6 +104,6 @@ This case results in losing the update from the second thread. As in Scenario~2,
   $\ast$~$\ast$~$\ast$
 \end{center}
 
-This example shows how a race condition can affect even the simplest program by making its result dependent on the order of execution of concurrent threads (and therefore practically impossible to predict). The fact that the bug does not always present itself (as in Senario~1) makes it even harder to detect, expecially in more complex situations. \\
+This example shows how a race condition can affect even the simplest program by making its result dependent on the order of execution of concurrent threads (and therefore practically impossible to predict). The fact that the bug does not always present itself (as in Scenario~1) makes it even harder to detect, especially in more complex situations. \\
 
 In real-world applications race conditions can cause severe vulnerabilities: think about lost or repeated transactions in the context of a banking system. A specific type of race condition that is frequently found both in binary and in web applications is described the following section.
