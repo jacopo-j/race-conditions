@@ -10,15 +10,14 @@ A typical example for illustrating TOC/TOU vulnerabilities is the following: a p
 \hline
 \thead[c]{\textbf{\texttt{Set-UID} program}} & \thead[c]{\textbf{Attacker}} \\ \hline
 \makecell[l]{Check permissions for file \texttt{/tmp/file}} & \\
-& \makecell[l]{Symlink \texttt{/etc/passwd} to \texttt{/tmp/file}}  \\
-\makecell[l]{Open file \texttt{/tmp/file $\rightarrow$ /etc/passwd}}  & \\
-\makecell[l]{Write file \texttt{/tmp/file $\rightarrow$ /etc/passwd}}  & \\ \hline
+& \makecell[l]{Create symbolic link from \\ \texttt{/etc/passwd} to \texttt{/tmp/file}}  \\
+\makecell[l]{Open file \texttt{/tmp/file $\rightarrow$ /etc/passwd}}  & \\ \hline
 \end{tabular}
 \caption{Exploitation of TOC/TOU vulnerability in a \texttt{Set-UID} program}
 \label{tab:setuid}
 \end{table}
 
-In the following section we are going to explore a different example, related to a hypothetical banking system.
+In the following section we will explore a different example, related to a hypothetical banking system.
 
 \subsection{TOC/TOU example~\citep{courseslides}}
 
@@ -65,7 +64,7 @@ At the end of the process, \textsc{User2} ends up with twice the money he was in
 
 \subsection{Purposed solution}
 
-A simple (yet not optimal) solution could be to leverage the atomicity of single database queries:
+A simple (yet not optimal) solution could be to leverage the atomicity of single database queries, guaranteed by the DBMS:
 
 \begin{listing}[H]
 \begin{minted}[startinline, breaklines]{php}

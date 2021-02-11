@@ -4,7 +4,7 @@ Modern web applications rely on concurrency in order to serve multiple users at 
 
 The previous example shows that this must be carefully taken into consideration when dealing with databases, which web applications often use to store persistent data. The \texttt{aart} challenge is yet another example (certainly the most realistic so far) where this principle is not honored.
 
-\subsection{\texttt{aart} challenge walkthrough}
+\subsection{\texttt{aart} challenge walk-through}
 
 The challenge presents itself as a simple web application that allows users to register, login and share and vote ASCII art. The server-side source code is given and reveals that the application is written in PHP and uses a MySQL database for persistent data storage. \\
 
@@ -48,9 +48,9 @@ if($row['isRestricted']){
 \label{listing:login}
 \end{listing}
 
-The code queries the database in order to check whether the \texttt{privs} table has a \texttt{isRestricted} flag set to true for the current user. If it does, the error message is shown (line~\ref{errormsg}). Otherwise, a file called \texttt{key} is included in the page (line~\ref{flag}). \\
+The script queries the database to check whether the \texttt{privs} table has a row for the current user having the \texttt{isRestricted} column set to true. If it does, the error message is shown (line~\ref{errormsg}). Otherwise, a file called \texttt{key} is included in the page (line~\ref{flag}). \\
 
-It is reasonable to guess that the \texttt{key} file -- which is not included among the source code of the application -- contains the flag, thus our objective becomes to login with an account which does not have the \texttt{isRestricted} flag set to true\footnote{Notice that having the \texttt{isRestricted} flag set to false is not necessary; having no row at all associated with the current user in the \texttt{privs} table works as well. In that case, \texttt{\$row} at line~\ref{fetchassoc} will have value \texttt{NULL}, thus at the next line \texttt{\$row[\textquotesingle isRestricted\textquotesingle ]} will also be \texttt{NULL}, which evaluates to \texttt{false}. A simple null check or using a strict comparison (e.g. \texttt{if~(\$row[\textquotesingle isRestricted\textquotesingle ]~===~false)}) would have made the objective much harder or impossible to achieve.}. \\
+It is reasonable to guess that the \texttt{key} file -- which is not included among the source code of the application -- contains the flag, thus our objective is to login with an account which does not have the \texttt{isRestricted} column set to true\footnote{Notice that having the \texttt{isRestricted} column set to false is not necessary; having no row at all associated with the current user in the \texttt{privs} table works as well. In that case, \texttt{\$row} at line~\ref{fetchassoc} will have value \texttt{NULL}, thus at the next line \texttt{\$row[\textquotesingle isRestricted\textquotesingle ]} will also be \texttt{NULL}, which evaluates to \texttt{false}. A simple null check or using a strict comparison (e.g. \texttt{if~(\$row[\textquotesingle isRestricted\textquotesingle ]~===~false)}) would have made the objective much harder or impossible to achieve.}. \\
 
 By searching again through the code, it is possible to discover that the value \texttt{isRestricted} also appears in \texttt{register.php} file.
 
@@ -68,7 +68,7 @@ mysqli_query($conn, $sql); !\label{exec2}!
 \caption{Extract from file \texttt{register.php}}
 \end{listing}
 
-Here two queries are prepared and executed. The first one, at line~\ref{query1}, performs the user registration by inserting the corresponding row into the database. The second one, at line~\ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} flag set to true for the newly registered user. This second query is the reason why any user that registers on the application will see the message shown in Figure~\ref{fig:aartlogin} upon login. \\
+Here two queries are prepared and executed. The first one, at line~\ref{query1}, performs the user registration by inserting the corresponding row into the \texttt{users} table. The second one, at line~\ref{query2}, inserts a row into the \texttt{privs} table with the \texttt{isRestricted} column set to true for the newly registered user. This second query is the reason why any user that registers on the application will see the message shown in Figure~\ref{fig:aartlogin} upon login. \\
 
 Notice that the two queries are executed independently of each other. Once again, there is no use of database transactions and this leads to a race condition vulnerability. With accurate timing, an attacker could log into the application after the first query is executed but before the second query is, i.e.  during the (short) period of time that occurs between lines \ref{exec1} and \ref{exec2}, where the user is registered but it is not restricted yet. \\
 

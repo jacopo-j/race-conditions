@@ -11,7 +11,7 @@ Common examples of shared data are:
 
 \subsection{First example}
 
-We will now see one simple kind of bugs that race conditions may cause with a practical example. The Python code in Listing~\ref{listing:ex} reads an integer from a file on the disk, it increments the value by 1, then writes back the result to the file.
+We will now introduce a first kind of bugs that can arise from race conditions with a simple practical example. The Python code in Listing~\ref{listing:ex} reads an integer from a file on the disk, it increments the value by 1, then writes back the result to the file.
 
 \begin{listing}[H]
 \begin{minted}[python3]{python}
@@ -30,7 +30,7 @@ with open("myfile", "w") as f:
 \label{listing:ex}
 \end{listing}
 
-At a first glance, it seems reasonable to assume that each execution of the program will always result in the value stored in the file being incremented by 1. Therefore, running the program \textit{n} times will result in the value stored in the file being incremented by \textit{n}. If we consider the possibility of running the program in multiple concurrent threads, however, this assumption is no longer guaranteed. In fact, the operating system may switch between threads at any point during the execution, leading to different outcomes. \\
+At a first glance, it seems reasonable to assume that each execution of the program will always result in the value stored in the file being incremented by 1. Therefore, running the program \textit{n} times will result in the value stored in the file being incremented by \textit{n}. If we consider the possibility of running the program in multiple concurrent threads, however, this assumption is no longer guaranteed. In fact, the outcome will depend on the scheduling done each time by the operating system. \\
 
 For the sake of this example, suppose that we are running the program in two concurrent threads and let the initial value stored in the file be \texttt{19}. We will explore three of possible outcomes, result of just as many ways the scheduler can switch between threads.
 
@@ -104,6 +104,6 @@ This case results in losing the update from the second thread. As in Scenario~2,
   $\ast$~$\ast$~$\ast$
 \end{center}
 
-This example shows how a race condition can affect even the simplest program by making its result dependent on the order of execution of concurrent threads (and therefore practically impossible to predict). The fact that the bug does not always present itself (as in Scenario~1) makes it even harder to detect, especially in more complex situations. \\
+This example shows how a race condition can affect even the simplest program by making its result dependent on the order of execution of concurrent threads. The fact that the bug does not always present itself (as in Scenario~1) makes it even harder to detect, especially in more complex situations. \\
 
 In real-world applications race conditions can cause severe vulnerabilities: think about lost or repeated transactions in the context of a banking system. A specific type of race condition that is frequently found both in binary and in web applications is described the following section.
