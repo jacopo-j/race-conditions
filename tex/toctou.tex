@@ -68,7 +68,7 @@ At the end of the process, \textsc{User2} ends up with twice the money he was in
 A simple (yet not optimal) solution could be to leverage the atomicity of single database queries:
 
 \begin{listing}[H]
-\begin{minted}[startinline, breaklines, samepage]{php}
+\begin{minted}[startinline, breaklines]{php}
 // Update User1's balance only if she has at least 400$
 query("UPDATE users SET balance = balance - 400 WHERE id = User1 AND balance >= 400");
 
